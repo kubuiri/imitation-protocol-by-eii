@@ -213,6 +213,11 @@
 			background: rgba(24,28,33,.9); border: 1px solid #3a424b; color: #d94f4f; font-size: .72rem;
 			letter-spacing: .1em; cursor: pointer; }
 		#reportBtn:hover { border-color: #d94f4f; }
+		/* Mobile-only menu button (touch devices have no E / M key) */
+		#filesBtn { position: fixed; left: 16px; top: 70px; z-index: 30; height: 36px; padding: 0 14px; display: none;
+			background: rgba(24,28,33,.9); border: 1px solid #7fff9e; color: #7fff9e; font-family: inherit;
+			font-size: .64rem; letter-spacing: .14em; cursor: pointer; touch-action: manipulation; }
+		#filesBtn:active { background: rgba(127,255,158,.25); }
 		#reportBackdrop { position: fixed; inset: 0; z-index: 31; display: none; background: rgba(0,0,0,.6); }
 		#reportPanel { position: fixed; left: 50%; top: 50%; transform: translate(-50%,-50%); z-index: 32;
 			width: min(380px, 92vw); display: none; background: #181c21; border: 1px solid #3a424b;
@@ -307,6 +312,7 @@
 	</div>
 
 	<!-- SETTINGS + BUG REPORT -->
+	<button id="filesBtn" title="Open Incident Files">FILES</button>
 	<button id="reportBtn" title="Report a bug">BUG?</button>
 	<button id="settingsBtn" title="Control settings">⚙</button>
 	<div id="settingsBackdrop"></div>
@@ -542,6 +548,7 @@ const detectorFill = document.getElementById("detectorFill");
 const scanOverlay = document.getElementById("scanOverlay");
 const touchDetectBtn = document.getElementById("touchDetect");
 const touchLightBtn = document.getElementById("touchLight");
+const filesBtn = document.getElementById("filesBtn");
 const slotFlashlight = document.getElementById("slotFlashlight");
 const slotDetector = document.getElementById("slotDetector");
 const flashStateEl = document.getElementById("flashState");
@@ -792,6 +799,7 @@ renderer.domElement.addEventListener("click", () => {
 	if (!pcEnabled || !started || menuOpen() || settingsOpen || reportOpen) return;
 	// Clicking the world closes the skins UI and resumes first-person control
 	if (skinsBtn.classList.contains("show")) hideSkins();
+	if (isTouchDevice()) return;
 	renderer.domElement.requestPointerLock();
 });
 
@@ -863,6 +871,12 @@ touchDetectBtn.addEventListener("pointerdown", e => {
 touchLightBtn.addEventListener("pointerdown", e => {
 	e.preventDefault();
 	toggleFlashlight();
+});
+// Mobile menu button — touch devices have no E / M key
+filesBtn.addEventListener("click", e => {
+	e.stopPropagation();
+	if (!started) return;
+	openMenu();
 });
 
 // ===== EQUIPPABLE ITEMS (bottom-center bar) =====
@@ -999,6 +1013,11 @@ function nearPad() {
 
 function menuOpen() { return menu.style.display === "flex"; }
 
+// Touch devices must never grab pointer lock — it hides the cursor and breaks touch look
+function isTouchDevice() {
+	return !!(window.matchMedia && window.matchMedia("(pointer: coarse)").matches);
+}
+
 // ===== MENU LOGIC =====
 function showScreen(s) {
 	[screenMode, screenBrowser, screenParty, screenFiles, screenDetail].forEach(x => x.classList.remove("active"));
@@ -1014,7 +1033,7 @@ function openMenu() {
 function closeMenu() {
 	clearKeys();
 	menu.style.display = "none";
-	if (pcEnabled && !settingsOpen && !reportOpen) renderer.domElement.requestPointerLock();
+	if (pcEnabled && !isTouchDevice() && !settingsOpen && !reportOpen) renderer.domElement.requestPointerLock();
 }
 
 // ===== SETTINGS PANEL =====
@@ -1024,6 +1043,7 @@ function applyModes() {
 	pcModeBtn.classList.toggle("active", pcEnabled);
 	mobileModeBtn.classList.toggle("active", mobileEnabled);
 	touchControls.style.display = mobileEnabled ? "block" : "none";
+	filesBtn.style.display = (mobileEnabled && started) ? "block" : "none";
 	instructions.style.display = pcEnabled ? "block" : "none";
 	if (!mobileEnabled) {
 		resetStick();
@@ -1103,7 +1123,8 @@ enterBtn.addEventListener("click", () => {
 	hud.style.display = "block";
 	settingsBtn.style.display = "block";
 	reportBtn.style.display = "block";
-	if (pcEnabled) renderer.domElement.requestPointerLock();
+	filesBtn.style.display = mobileEnabled ? "block" : "none";
+	if (pcEnabled && !isTouchDevice()) renderer.domElement.requestPointerLock();
 });
 
 document.getElementById("closeMenu").addEventListener("click", closeMenu);
@@ -1452,7 +1473,9 @@ function animate() {
 	const pulse = .45 + Math.sin(clock.elapsedTime * 2) * .15;
 	pad.material.emissiveIntensity = pulse;
 
-	promptEl.style.display = (started && nearPad() && !menuOpen() && !settingsOpen && !reportOpen) ? "block" : "none";
+	const showPrompt = started && nearPad() && !menuOpen() && !settingsOpen && !reportOpen;
+	promptEl.style.display = showPrompt ? "block" : "none";
+	if (showPrompt) promptEl.textContent = mobileEnabled ? "TAP FILES (TOP LEFT) TO OPEN" : "[ E ] OPEN INCIDENT FILES";
 
 	renderer.render(scene, camera);
 }
