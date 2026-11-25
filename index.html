@@ -208,6 +208,16 @@
 		.modeCheck { display: flex; align-items: center; gap: 5px; font-size: .68rem; color: #8c9296; cursor: pointer; }
 		.modeCheck input { accent-color: #7fff9e; cursor: pointer; }
 
+		/* ===== DISPLAY SETTINGS ===== */
+		.spDivider { height: 1px; background: #2a2f36; margin: 14px 0 12px; }
+		.settingRow { display: flex; align-items: center; gap: 10px; margin-bottom: 6px; }
+		.settingLabel { font-size: .64rem; letter-spacing: .12em; color: #8c9296; min-width: 84px; }
+		.settingValue { font-size: .64rem; color: #7fff9e; min-width: 40px; text-align: right; }
+		#brightnessSlider { flex: 1; height: 20px; accent-color: #7fff9e; cursor: pointer; }
+		#potatoBtn { flex: 1; padding: 9px; font-size: .68rem; letter-spacing: .12em; cursor: pointer;
+			background: #20242a; color: #8c9296; border: 1px solid #3a424b; }
+		#potatoBtn.active { background: #d9a441; color: #0e1014; border-color: #d9a441; font-weight: bold; }
+
 		/* ===== BUG REPORT ===== */
 		#reportBtn { position: fixed; right: 60px; top: 16px; z-index: 30; height: 34px; padding: 0 12px; display: none;
 			background: rgba(24,28,33,.9); border: 1px solid #3a424b; color: #d94f4f; font-size: .72rem;
@@ -318,8 +328,8 @@
 	<div id="settingsBackdrop"></div>
 	<div id="settingsPanel">
 		<button class="settingsClose" id="closeSettings" title="Close settings">X</button>
-		<div class="sptitle">CONTROL SETTINGS</div>
-		<div class="spnote">Turn a control scheme on or off.</div>
+		<div class="sptitle">SETTINGS</div>
+		<div class="spnote">Controls and display.</div>
 		<div class="mode-row">
 			<button class="modeBtn active" id="pcModeBtn">PC MODE</button>
 			<label class="modeCheck"><input type="checkbox" id="pcCheck" checked /> ON</label>
@@ -329,6 +339,18 @@
 			<label class="modeCheck"><input type="checkbox" id="mobileCheck" /> ON</label>
 		</div>
 		<div class="spnote" style="margin:12px 0 0">PC: WASD + Shift. Mobile: drag the joystick, hold SPRINT, drag the right side of the screen to look.</div>
+
+		<div class="spDivider"></div>
+		<div class="settingRow">
+			<span class="settingLabel">BRIGHTNESS</span>
+			<input type="range" id="brightnessSlider" min="50" max="200" step="5" value="100" />
+			<span class="settingValue" id="brightnessValue">100%</span>
+		</div>
+		<div class="mode-row" style="margin-top:10px">
+			<button id="potatoBtn">POTATO MODE</button>
+			<label class="modeCheck"><input type="checkbox" id="potatoCheck" /> ON</label>
+		</div>
+		<div class="spnote" style="margin:6px 0 0">Potato mode lowers resolution and turns off shadows for slow phones. Keep it off if the game already runs smooth.</div>
 	</div>
 
 	<!-- BUG REPORT -->
@@ -459,7 +481,7 @@ const SHARE_URL = "https://kubuiri.github.io/imitation-protocol-by-eii/";
 
 // ===== LOCAL SAVE (per device — no account, no renaming Olive) =====
 const SAVE_KEY = "imitation_protocol_save_v1";
-let saveData = { unlocked: [1], seen: [], pcEnabled: true, mobileEnabled: false };
+let saveData = { unlocked: [1], seen: [], pcEnabled: true, mobileEnabled: false, brightness: 100, potato: false };
 function loadSave() {
 	try {
 		const raw = localStorage.getItem(SAVE_KEY);
@@ -469,6 +491,10 @@ function loadSave() {
 			saveData.seen = Array.isArray(parsed.seen) ? parsed.seen : [];
 			saveData.pcEnabled = parsed.pcEnabled !== false;
 			saveData.mobileEnabled = !!parsed.mobileEnabled;
+			if (typeof parsed.brightness === "number") {
+				saveData.brightness = Math.min(200, Math.max(50, parsed.brightness));
+			}
+			saveData.potato = !!parsed.potato;
 		}
 	} catch (e) {}
 }
@@ -525,6 +551,10 @@ const settingsBtn = document.getElementById("settingsBtn");
 const settingsPanel = document.getElementById("settingsPanel");
 const settingsBackdrop = document.getElementById("settingsBackdrop");
 const closeSettings = document.getElementById("closeSettings");
+const brightnessSlider = document.getElementById("brightnessSlider");
+const brightnessValue = document.getElementById("brightnessValue");
+const potatoBtn = document.getElementById("potatoBtn");
+const potatoCheck = document.getElementById("potatoCheck");
 const reportBtn = document.getElementById("reportBtn");
 const reportPanel = document.getElementById("reportPanel");
 const reportBackdrop = document.getElementById("reportBackdrop");
@@ -1057,6 +1087,48 @@ function applyModes() {
 	writeSave();
 	updateEquipUI();
 }
+
+// ===== DISPLAY: BRIGHTNESS + POTATO MODE =====
+let potatoMode = false;
+let potatoAccum = 0;
+
+function applyBrightness(save) {
+	const v = Math.min(200, Math.max(50, Number(brightnessSlider.value) || 100));
+	brightnessSlider.value = v;
+	brightnessValue.textContent = v + "%";
+	renderer.domElement.style.filter = v === 100 ? "" : "brightness(" + (v / 100) + ")";
+	saveData.brightness = v;
+	if (save !== false) writeSave();
+}
+
+function applyQuality(save) {
+	potatoMode = !!potatoCheck.checked;
+	potatoBtn.classList.toggle("active", potatoMode);
+	// Render at a lower internal resolution on weak devices
+	renderer.setPixelRatio(potatoMode ? 0.6 : Math.min(window.devicePixelRatio, 2));
+	renderer.shadowMap.enabled = !potatoMode;
+	// Pull the fog and far plane in so less world is drawn
+	scene.fog.far = potatoMode ? 45 : 70;
+	camera.far = potatoMode ? 90 : 200;
+	camera.updateProjectionMatrix();
+	// Toggling shadows requires materials to recompile
+	scene.traverse(o => {
+		if (o.isMesh && o.material) {
+			(Array.isArray(o.material) ? o.material : [o.material]).forEach(m => { m.needsUpdate = true; });
+		}
+	});
+	potatoAccum = 0;
+	saveData.potato = potatoMode;
+	if (save !== false) writeSave();
+}
+
+brightnessSlider.addEventListener("input", () => applyBrightness());
+potatoCheck.addEventListener("change", () => applyQuality());
+potatoBtn.addEventListener("click", () => {
+	potatoCheck.checked = !potatoCheck.checked;
+	applyQuality();
+});
+
 function setSettings(open) {
 	settingsOpen = open;
 	settingsPanel.style.display = open ? "block" : "none";
@@ -1115,6 +1187,10 @@ CHAPTERS.forEach(ch => { ch.locked = !saveData.unlocked.includes(ch.index); });
 pcCheck.checked = saveData.pcEnabled;
 mobileCheck.checked = saveData.mobileEnabled;
 applyModes();
+brightnessSlider.value = saveData.brightness;
+potatoCheck.checked = saveData.potato;
+applyBrightness(false);
+applyQuality(false);
 
 enterBtn.addEventListener("click", () => {
 	titleScreen.style.opacity = "0";
@@ -1477,6 +1553,12 @@ function animate() {
 	promptEl.style.display = showPrompt ? "block" : "none";
 	if (showPrompt) promptEl.textContent = mobileEnabled ? "TAP FILES (TOP LEFT) TO OPEN" : "[ E ] OPEN INCIDENT FILES";
 
+	// Potato mode: draw at ~30 fps instead of ~60 to save GPU
+	if (potatoMode) {
+		potatoAccum += dt;
+		if (potatoAccum < 1 / 30) return;
+		potatoAccum = 0;
+	}
 	renderer.render(scene, camera);
 }
 animate();
