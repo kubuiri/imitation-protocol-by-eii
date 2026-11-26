@@ -41,7 +41,8 @@
 			font-size: .95rem; color: #7fff9e; display: none; }
 		#zoneName { position: absolute; left: 20px; top: 18px; font-size: .8rem; letter-spacing: .2em; color: #8c9296; }
 		#vignette { position: absolute; inset: 0; box-shadow: inset 0 0 220px 60px rgba(0,0,0,.9); }
-		#instructions { position: absolute; left: 20px; bottom: 18px; font-size: .72rem; color: #6f7579; line-height: 1.6; }
+		#instructions { position: absolute; left: 50%; bottom: 74px; transform: translateX(-50%);
+			font-size: .66rem; color: #6f7579; letter-spacing: .04em; white-space: nowrap; }
 
 		/* ===== CHAPTER MENU ===== */
 		#menu { position: fixed; inset: 0; z-index: 40; display: none; align-items: center; justify-content: center;
@@ -268,6 +269,54 @@
 		}
 
 		#fade { position: fixed; inset: 0; z-index: 60; background: #000; opacity: 0; pointer-events: none; transition: opacity .25s; }
+
+		/* ===== CHAPTER LOADING SCREEN ===== */
+		#loadScreen { position: fixed; inset: 0; z-index: 80; display: none; flex-direction: column;
+			align-items: center; justify-content: center; background: #05070a; text-align: center;
+			padding: 24px; animation: loadIn .3s ease-out; }
+		#loadScreen.show { display: flex; }
+		@keyframes loadIn { from { opacity: 0; } to { opacity: 1; } }
+		.loadTop { font-size: .6rem; letter-spacing: .34em; color: #4d5a63; margin-bottom: 30px; }
+		.loadChapter { font-size: .74rem; letter-spacing: .5em; color: #7fff9e; margin-bottom: 12px; }
+		.loadName { font-size: clamp(2.6rem, 9vw, 4.6rem); letter-spacing: .22em; color: #e8e4db;
+			font-weight: bold; line-height: 1; text-indent: .22em; }
+		.loadSub { font-size: .66rem; letter-spacing: .18em; color: #6f7579; margin-top: 16px;
+			max-width: 440px; line-height: 1.9; }
+		.loadBarWrap { width: min(360px, 78vw); height: 3px; background: #1b2228; margin-top: 44px; overflow: hidden; }
+		#loadFill { width: 0%; height: 100%; background: #7fff9e; box-shadow: 0 0 12px rgba(127,255,158,.7); transition: width .12s linear; }
+		.loadPct { margin-top: 12px; font-size: .62rem; letter-spacing: .2em; color: #7fff9e; }
+		.loadStatus { margin-top: 8px; font-size: .56rem; letter-spacing: .18em; color: #59636b; height: 14px; }
+		.loadMade { position: absolute; bottom: 26px; font-size: .56rem; letter-spacing: .3em; color: #3f4a52; }
+		#loadEnd { display: none; }
+		#loadEnd.show { display: block; }
+		.loadEndTitle { font-size: 1rem; letter-spacing: .24em; color: #d9a441; margin: 16px 0 6px; }
+
+		/* ===== INTRO CUTSCENE ===== */
+		#cutscene { position: fixed; inset: 0; z-index: 70; display: none; }
+		#cutscene.show { display: block; }
+		.csBar { position: absolute; left: 0; right: 0; height: 9vh; background: #000; }
+		.csBar.top { top: 0; }
+		.csBar.bot { bottom: 0; }
+		#csSkip { position: absolute; top: calc(9vh + 14px); right: 18px; z-index: 3;
+			font-size: .58rem; letter-spacing: .18em; color: #6f7579; background: rgba(8,10,12,.6);
+			border: 1px solid #2a3238; padding: 8px 13px; cursor: pointer; font-family: inherit; }
+		#csSkip:hover { color: #7fff9e; border-color: #7fff9e; }
+		#csTitle { position: absolute; left: 50%; top: 43%; transform: translate(-50%,-50%);
+			text-align: center; opacity: 0; transition: opacity .8s; width: 90vw; }
+		#csTitle.show { opacity: 1; }
+		.csLoc { font-size: clamp(1.05rem, 3.6vw, 1.9rem); letter-spacing: .32em; color: #e8e4db; text-indent: .32em; }
+		.csTime { font-size: .58rem; letter-spacing: .26em; color: #7fff9e; margin-top: 15px; }
+		#csSub { position: absolute; left: 50%; bottom: calc(9vh + 26px); transform: translateX(-50%);
+			width: min(680px, 88vw); text-align: center; opacity: 0; transition: opacity .25s; }
+		#csSub.show { opacity: 1; }
+		.csSpeaker { font-size: .56rem; letter-spacing: .26em; color: #9dffb8; margin-bottom: 9px;
+			text-shadow: 0 2px 10px #000, 0 0 3px #000; }
+		.csSpeaker.radio { color: #f0b95c; }
+		.csLine { font-size: clamp(.92rem, 2.3vw, 1.3rem); line-height: 1.55; color: #e8e4db;
+			text-shadow: 0 2px 16px #000, 0 0 4px #000; }
+		#csShade { position: absolute; left: 0; right: 0; bottom: 0; height: 34vh; pointer-events: none;
+			background: linear-gradient(to top, rgba(0,0,0,.8), rgba(0,0,0,.35) 45%, rgba(0,0,0,0)); }
+		#csFade { position: absolute; inset: 0; background: #000; opacity: 0; pointer-events: none; transition: opacity .7s; }
 	</style>
 </head>
 <body>
@@ -318,7 +367,7 @@
 		</div>
 		<div id="crosshair"></div>
 		<div id="prompt">[ E ] OPEN INCIDENT FILES</div>
-		<div id="instructions">WASD move &nbsp;•&nbsp; SHIFT sprint &nbsp;•&nbsp; 1/2 equip &nbsp;•&nbsp; L light &nbsp;•&nbsp; F scan &nbsp;•&nbsp; E interact &nbsp;•&nbsp; M menu &nbsp;•&nbsp; ESC cursor</div>
+		<div id="instructions">WASD move &nbsp;•&nbsp; SHIFT sprint &nbsp;•&nbsp; 1/2 equip &nbsp;•&nbsp; L light &nbsp;•&nbsp; F scan &nbsp;•&nbsp; E interact &nbsp;•&nbsp; M menu &nbsp;•&nbsp; ESC unlock</div>
 	</div>
 
 	<!-- SETTINGS + BUG REPORT -->
@@ -400,6 +449,7 @@
 				<button class="back" id="backFromBrowser">&lt; BACK</button>
 				<h3>LOBBY BROWSER</h3>
 				<div class="hint">Open incident teams. Pick a party to join, or enter a code.</div>
+				<div class="hint" style="color:#d9a441;margin-top:-4px">OFFLINE BUILD — party codes only work on this device.</div>
 				<div class="toolbar">
 					<button class="btn alt small" id="refreshBtn">REFRESH</button>
 					<input class="codeinput" id="codeInput" placeholder="ENTER PARTY CODE" maxlength="6" />
@@ -454,6 +504,43 @@
 	</div>
 
 	<div id="fade"></div>
+
+	<!-- CHAPTER LOADING SCREEN -->
+	<div id="loadScreen">
+		<div id="loadMain">
+			<div class="loadTop" id="loadTop">INCIDENT FILE // SITE KESTREL</div>
+			<div class="loadChapter" id="loadChapter">CHAPTER 1</div>
+			<div class="loadName" id="loadName">ECHO</div>
+			<div class="loadSub" id="loadSub"></div>
+			<div class="loadBarWrap"><div id="loadFill"></div></div>
+			<div class="loadPct" id="loadPct">0%</div>
+			<div class="loadStatus" id="loadStatus">ESTABLISHING UPLINK</div>
+		</div>
+		<div id="loadEnd">
+			<div class="loadChapter" id="loadEndChapter">CHAPTER 1 // ECHO</div>
+			<div class="loadEndTitle">INCIDENT FILE INCOMPLETE</div>
+			<div class="loadSub">This chapter is still being written.<br>Chapter 1 will deploy in a future update.</div>
+			<button class="btn" id="loadReturn" style="margin-top:28px;max-width:260px">RETURN TO SITE</button>
+		</div>
+		<div class="loadMade">MADE BY EII</div>
+	</div>
+
+	<!-- INTRO CUTSCENE -->
+	<div id="cutscene">
+		<div class="csBar top"></div>
+		<div class="csBar bot"></div>
+		<div id="csTitle">
+			<div class="csLoc">KESTREL RESEARCH SITE 04</div>
+			<div class="csTime">04:12 AM // PERIMETER</div>
+		</div>
+		<button id="csSkip">SKIP &gt;</button>
+		<div id="csShade"></div>
+		<div id="csSub">
+			<div class="csSpeaker" id="csSpeaker"></div>
+			<div class="csLine" id="csLine"></div>
+		</div>
+		<div id="csFade"></div>
+	</div>
 
 	<script>
 /**
@@ -547,6 +634,20 @@ const partyStatus = document.getElementById("partyStatus");
 const codeInput = document.getElementById("codeInput");
 const soloBtn = document.getElementById("soloBtn");
 
+// Chapter loading screen
+const loadScreen = document.getElementById("loadScreen");
+const loadMain = document.getElementById("loadMain");
+const loadEnd = document.getElementById("loadEnd");
+const loadTop = document.getElementById("loadTop");
+const loadChapter = document.getElementById("loadChapter");
+const loadName = document.getElementById("loadName");
+const loadSub = document.getElementById("loadSub");
+const loadFill = document.getElementById("loadFill");
+const loadPct = document.getElementById("loadPct");
+const loadStatus = document.getElementById("loadStatus");
+const loadEndChapter = document.getElementById("loadEndChapter");
+const loadReturn = document.getElementById("loadReturn");
+
 const settingsBtn = document.getElementById("settingsBtn");
 const settingsPanel = document.getElementById("settingsPanel");
 const settingsBackdrop = document.getElementById("settingsBackdrop");
@@ -614,11 +715,12 @@ let detectorClickTimer = null;
 let lastDetectorKeyTime = 0;
 let lookPointerId = null;
 let lastLookX = 0, lastLookY = 0;
+let chapterLoading = false;
 
 // ===== THREE.JS SCENE =====
 const scene = new THREE.Scene();
-scene.background = new THREE.Color(0x14161a);
-scene.fog = new THREE.Fog(0x14161a, 18, 70);
+scene.background = new THREE.Color(0x1b2530);
+scene.fog = new THREE.Fog(0x31434d, 24, 72);
 
 const camera = new THREE.PerspectiveCamera(72, window.innerWidth / window.innerHeight, 0.1, 200);
 camera.position.set(0, 1.7, 10);
@@ -629,11 +731,16 @@ renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
 renderer.shadowMap.enabled = true;
 document.body.insertBefore(renderer.domElement, document.body.firstChild);
 
-// Lighting: dim desert night + flashlight
-scene.add(new THREE.AmbientLight(0x404840, 0.5));
-const moon = new THREE.DirectionalLight(0x8fa0b0, 0.35);
+// Lighting: dusk desert — cool sky bounce, warm ground bounce, soft moonlight
+scene.add(new THREE.HemisphereLight(0x7d94a4, 0x7a6749, 0.9));
+scene.add(new THREE.AmbientLight(0x4a4c44, 0.45));
+const moon = new THREE.DirectionalLight(0x9fb6cc, 0.5);
 moon.position.set(-20, 30, -10);
 scene.add(moon);
+// Warm low dusk light so the lab facade isn't a flat grey slab
+const duskLight = new THREE.DirectionalLight(0xffb070, 0.5);
+duskLight.position.set(-18, 9, 46);
+scene.add(duskLight);
 
 const flashlight = new THREE.SpotLight(0xffffff, 2.1, 45, Math.PI / 7, 0.45, 1.2);
 flashlight.position.set(0, 0, 0);
@@ -730,10 +837,16 @@ camera.add(detectorModel);
 
 // ===== BUILD LOBBY =====
 const MAT = {
-	ground: new THREE.MeshStandardMaterial({ color: 0x6b5f4a, roughness: 1 }),
-	wall:   new THREE.MeshStandardMaterial({ color: 0x3a3f45, roughness: .95 }),
-	metal:  new THREE.MeshStandardMaterial({ color: 0x4a5058, roughness: .6, metalness: .4 }),
-	green:  new THREE.MeshStandardMaterial({ color: 0x1c3a26, emissive: 0x7fff9e, emissiveIntensity: .55, roughness: .4 }),
+	ground:   new THREE.MeshStandardMaterial({ color: 0x8d7c60, roughness: 1 }),
+	path:     new THREE.MeshStandardMaterial({ color: 0x4c4a45, roughness: 1 }),
+	concrete: new THREE.MeshStandardMaterial({ color: 0x6d7278, roughness: .92 }),
+	concreteDark: new THREE.MeshStandardMaterial({ color: 0x4e545b, roughness: .95 }),
+	metal:    new THREE.MeshStandardMaterial({ color: 0x717a85, roughness: .55, metalness: .45 }),
+	metalDark: new THREE.MeshStandardMaterial({ color: 0x3b424a, roughness: .6, metalness: .5 }),
+	glassWarm: new THREE.MeshStandardMaterial({ color: 0x2a2118, emissive: 0xffb765, emissiveIntensity: 1.15, roughness: .35 }),
+	glassCool: new THREE.MeshStandardMaterial({ color: 0x16201f, emissive: 0x9fe6d6, emissiveIntensity: .55, roughness: .3 }),
+	lamp:     new THREE.MeshStandardMaterial({ color: 0x3a3128, emissive: 0xffc98a, emissiveIntensity: 1.4 }),
+	green:    new THREE.MeshStandardMaterial({ color: 0x1c3a26, emissive: 0x7fff9e, emissiveIntensity: .55, roughness: .4 }),
 };
 
 function box(w, h, d, mat, x, y, z) {
@@ -744,49 +857,387 @@ function box(w, h, d, mat, x, y, z) {
 	return m;
 }
 
+// Draws a texture on a 2D canvas — keeps the game a single file with no image downloads
+function canvasTex(w, h, draw, repeatX, repeatY) {
+	const c = document.createElement("canvas");
+	c.width = w; c.height = h;
+	const g = c.getContext("2d");
+	draw(g, w, h);
+	const t = new THREE.CanvasTexture(c);
+	t.anisotropy = 4;
+	if (repeatX || repeatY) {
+		t.wrapS = t.wrapT = THREE.RepeatWrapping;
+		t.repeat.set(repeatX || 1, repeatY || 1);
+	}
+	return t;
+}
+
+// ---- Dusk sky with stars + hazy moon ----
+const skyTex = canvasTex(512, 256, (g, w, h) => {
+	const grad = g.createLinearGradient(0, 0, 0, h);
+	grad.addColorStop(0, "#080d14");
+	grad.addColorStop(.3, "#17242f");
+	grad.addColorStop(.5, "#31434d");
+	grad.addColorStop(.6, "#4c5a61");
+	grad.addColorStop(.72, "#6e6552");
+	grad.addColorStop(.84, "#8f7450");
+	grad.addColorStop(1, "#a5814f");
+	g.fillStyle = grad;
+	g.fillRect(0, 0, w, h);
+	// hazy moon
+	const mx = w * .72, my = h * .2;
+	const mg = g.createRadialGradient(mx, my, 2, mx, my, 34);
+	mg.addColorStop(0, "rgba(238,244,250,.9)");
+	mg.addColorStop(.22, "rgba(222,234,246,.35)");
+	mg.addColorStop(1, "rgba(200,215,230,0)");
+	g.fillStyle = mg;
+	g.beginPath(); g.arc(mx, my, 34, 0, Math.PI * 2); g.fill();
+});
+skyTex.minFilter = THREE.LinearFilter;
+const sky = new THREE.Mesh(
+	new THREE.SphereGeometry(85, 16, 12),
+	new THREE.MeshBasicMaterial({ map: skyTex, side: THREE.BackSide, fog: false, depthWrite: false })
+);
+scene.add(sky);
+
 // Ground
 const ground = new THREE.Mesh(new THREE.PlaneGeometry(160, 160), MAT.ground);
 ground.rotation.x = -Math.PI / 2;
 ground.receiveShadow = true;
 scene.add(ground);
 
-// Perimeter fence posts + wire (simple)
-for (let i = -40; i <= 40; i += 8) {
-	box(.3, 3, .3, MAT.metal, i, 1.5, -30);
-	box(.3, 3, .3, MAT.metal, i, 1.5, 30);
-}
-// Facility building in the distance ( blocks )
-box(30, 6, 12, MAT.wall, 0, 3, -45);
-box(6, 8, 6, MAT.wall, -18, 4, -43);
-box(4, 2, 4, MAT.metal, 12, 1, -38);
-// Sign posts
-box(8, 1.2, .3, MAT.metal, 0, 4.5, -38.8);
+// Walkway from the pad to the lab
+box(9, .04, 30, MAT.path, 0, .02, -22);
+box(26, .04, 10, MAT.path, 0, .02, -36);
 
-// The Chapter Pad (green glowing disc)
+// ---- KESTREL logo (drawn, not downloaded) ----
+const logoTex = canvasTex(512, 256, (g, w, h) => {
+	g.clearRect(0, 0, w, h);
+	g.strokeStyle = "rgba(127,255,158,.45)";
+	g.lineWidth = 3;
+	g.strokeRect(9, 9, w - 18, h - 18);
+
+	// falcon mark
+	g.save();
+	g.translate(92, 122);
+	g.scale(.92, .92);
+	g.fillStyle = "#e8e4db";
+	g.beginPath();
+	g.moveTo(0, -46);
+	g.lineTo(8, -30);
+	g.lineTo(16, -26);
+	g.lineTo(58, -8);
+	g.lineTo(20, 2);
+	g.lineTo(14, 16);
+	g.lineTo(10, 44);
+	g.lineTo(-10, 44);
+	g.lineTo(-14, 16);
+	g.lineTo(-20, 2);
+	g.lineTo(-58, -8);
+	g.lineTo(-16, -26);
+	g.lineTo(-8, -30);
+	g.closePath();
+	g.fill();
+	g.fillStyle = "#7fff9e";
+	g.beginPath();
+	g.arc(0, -34, 5, 0, Math.PI * 2);
+	g.fill();
+	g.restore();
+
+	g.textBaseline = "middle";
+	g.fillStyle = "#e8e4db";
+	g.font = "bold 58px 'Segoe UI', Arial, sans-serif";
+	g.fillText("KESTREL", 176, 92);
+	g.fillStyle = "#7fff9e";
+	g.font = "bold 19px 'Segoe UI', Arial, sans-serif";
+	g.fillText("RESEARCH SITE 04", 178, 146);
+	g.strokeStyle = "rgba(127,255,158,.5)";
+	g.lineWidth = 2;
+	g.beginPath();
+	g.moveTo(178, 168);
+	g.lineTo(470, 168);
+	g.stroke();
+	g.fillStyle = "#8c9296";
+	g.font = "14px 'Segoe UI', Arial, sans-serif";
+	g.fillText("AUTHORIZED PERSONNEL ONLY", 178, 190);
+});
+const logoMat = new THREE.MeshStandardMaterial({
+	map: logoTex, emissive: 0xffffff, emissiveMap: logoTex, emissiveIntensity: .95,
+	transparent: true, alphaTest: .04, roughness: .8
+});
+
+// ---- Main lab block ----
+box(36, 7.5, 14, MAT.concrete, 0, 3.75, -48);
+box(37, .5, 15, MAT.concreteDark, 0, 7.6, -48);      // parapet
+box(36.2, .35, 14.2, MAT.concreteDark, 0, 5.7, -48); // band
+
+// Side wings
+box(9, 5, 10, MAT.concreteDark, -24, 2.5, -46);
+box(7, 3.6, 8, MAT.concreteDark, 23, 1.8, -44);
+
+// Windows (frame + lit glass)
+function windowPanel(x, y, z, mat, ww, wh) {
+	box(ww + .35, wh + .35, .14, MAT.metalDark, x, y, z - .04);
+	box(ww, wh, .16, mat, x, y, z);
+}
+[-15, -10.5, 10.5, 15].forEach(x => {
+	windowPanel(x, 4.8, -40.86, MAT.glassWarm, 3.2, 1.2);
+	windowPanel(x, 2.3, -40.86, MAT.glassCool, 3.2, 1.0);
+});
+windowPanel(-24, 3.2, -41.02, MAT.glassCool, 2.4, .9);
+windowPanel(23, 2.4, -40.02, MAT.glassWarm, 2.0, .8);
+
+// Entrance vestibule + lit doors
+box(8, 4.6, 2.2, MAT.concreteDark, 0, 2.3, -40.2);
+box(6.6, 3.4, .2, MAT.metalDark, 0, 1.7, -39.06);
+box(2.9, 2.9, .12, MAT.glassWarm, -1.55, 1.55, -38.98);
+box(2.9, 2.9, .12, MAT.glassWarm, 1.55, 1.55, -38.98);
+box(.3, 3.1, .18, MAT.metalDark, 0, 1.55, -38.95); // door mullion
+box(7.5, .45, 3.4, MAT.concreteDark, 0, 4.85, -39.4); // canopy
+// Steps
+box(10, .2, 3.0, MAT.concrete, 0, .1, -37.4);
+box(8.4, .4, 2.2, MAT.concrete, 0, .2, -37.9);
+box(6.8, .6, 1.4, MAT.concrete, 0, .3, -38.3);
+
+// Big glowing sign
+box(11.6, 5.7, .25, MAT.metalDark, 0, 5.9, -40.85);
+const signMesh = new THREE.Mesh(new THREE.PlaneGeometry(11, 5.5), logoMat);
+signMesh.position.set(0, 5.9, -40.7);
+scene.add(signMesh);
+
+// Roof equipment
+box(4, 1.2, 3, MAT.metal, -9, 8.4, -46);
+box(3, .9, 2.2, MAT.metalDark, 6, 8.25, -47);
+box(2.4, .8, 2.4, MAT.metal, 13, 8.2, -45);
+
+// Antenna + blinking beacon
+const mast = new THREE.Mesh(new THREE.CylinderGeometry(.12, .16, 7, 8), MAT.metal);
+mast.position.set(12, 11.5, -47);
+scene.add(mast);
+const beaconMat = new THREE.MeshStandardMaterial({ color: 0x501010, emissive: 0xff3b30, emissiveIntensity: 1.4 });
+const beacon = new THREE.Mesh(new THREE.SphereGeometry(.28, 10, 10), beaconMat);
+beacon.position.set(12, 15.1, -47);
+scene.add(beacon);
+
+// Satellite dish
+const dish = new THREE.Mesh(
+	new THREE.SphereGeometry(1.6, 12, 8, 0, Math.PI * 2, 0, Math.PI / 3),
+	MAT.metal
+);
+dish.position.set(-11, 9.2, -45);
+dish.rotation.set(-.9, .6, 0);
+scene.add(dish);
+
+// Facade pipes
+[-16.5, 16.5].forEach(x => {
+	const p = new THREE.Mesh(new THREE.CylinderGeometry(.18, .18, 7, 8), MAT.metalDark);
+	p.position.set(x, 3.5, -40.8);
+	scene.add(p);
+});
+
+// Floodlights
+function floodlight(x, z) {
+	const pole = new THREE.Mesh(new THREE.CylinderGeometry(.13, .18, 8, 8), MAT.metalDark);
+	pole.position.set(x, 4, z);
+	scene.add(pole);
+	const arm = new THREE.Mesh(new THREE.BoxGeometry(1.6, .16, .16), MAT.metalDark);
+	arm.position.set(x, 8, z);
+	scene.add(arm);
+	const head = new THREE.Mesh(new THREE.BoxGeometry(1.4, .5, .8), MAT.lamp);
+	head.position.set(x, 7.8, z + .4);
+	scene.add(head);
+	const light = new THREE.PointLight(0xffc07a, 1.6, 40, 2);
+	light.position.set(x, 7.6, z + .7);
+	scene.add(light);
+}
+floodlight(-21, -33);
+floodlight(21, -33);
+
+// Warm light spilling out of the doors
+const doorLight = new THREE.PointLight(0xffb060, 1.2, 26, 2);
+doorLight.position.set(0, 3.6, -37.5);
+scene.add(doorLight);
+
+// Walkway bollard lights
+function bollard(x, z) {
+	const post = new THREE.Mesh(new THREE.CylinderGeometry(.1, .12, 1.0, 8), MAT.metalDark);
+	post.position.set(x, .5, z);
+	scene.add(post);
+	const cap = new THREE.Mesh(new THREE.CylinderGeometry(.13, .13, .16, 8), MAT.lamp);
+	cap.position.set(x, 1.05, z);
+	scene.add(cap);
+}
+[[-5.6, -8], [5.6, -8], [-5.6, -18], [5.6, -18], [-5.6, -28], [5.6, -28]].forEach(([x, z]) => bollard(x, z));
+
+// Barrels + crates by the entrance
+[[-7.5, -37.5], [-6.4, -36.6], [7.8, -37.2]].forEach(([x, z]) => {
+	const b = new THREE.Mesh(new THREE.CylinderGeometry(.45, .45, 1.1, 10), MAT.metalDark);
+	b.position.set(x, .55, z);
+	b.castShadow = true;
+	scene.add(b);
+	const lid = new THREE.Mesh(new THREE.CylinderGeometry(.46, .46, .08, 10), MAT.metal);
+	lid.position.set(x, 1.14, z);
+	scene.add(lid);
+});
+box(1.2, 1.0, 1.2, MAT.metal, 9.2, .5, -36.4);
+box(1.0, .8, .9, MAT.metalDark, 10.4, .4, -37.4);
+
+// ---- Chain-link perimeter fence ----
+const chainTex = canvasTex(128, 128, (g, w, h) => {
+	g.clearRect(0, 0, w, h);
+	g.strokeStyle = "rgba(196,206,214,.95)";
+	g.lineWidth = 3;
+	for (let i = -h; i < w + h; i += 16) {
+		g.beginPath(); g.moveTo(i, 0); g.lineTo(i + h, h); g.stroke();
+		g.beginPath(); g.moveTo(i, 0); g.lineTo(i - h, h); g.stroke();
+	}
+}, 4, 1.35);
+const chainMat = new THREE.MeshStandardMaterial({
+	map: chainTex, alphaTest: .35, side: THREE.DoubleSide,
+	roughness: .7, metalness: .5, color: 0xb9c2c9
+});
+
+function fencePost(x, z, tall) {
+	const p = new THREE.Mesh(new THREE.CylinderGeometry(.12, .15, tall || 3.2, 8), MAT.metal);
+	p.position.set(x, (tall || 3.2) / 2, z);
+	scene.add(p);
+}
+function buildFence(x1, z1, x2, z2) {
+	const dx = x2 - x1, dz = z2 - z1;
+	const len = Math.hypot(dx, dz);
+	const n = Math.max(1, Math.round(len / 8));
+	const sx = dx / n, sz = dz / n;
+	const angle = Math.atan2(dx, dz) + Math.PI / 2;
+	for (let i = 0; i <= n; i++) fencePost(x1 + sx * i, z1 + sz * i);
+	for (let i = 0; i < n; i++) {
+		const cx = x1 + sx * (i + .5), cz = z1 + sz * (i + .5);
+		const panel = new THREE.Mesh(new THREE.PlaneGeometry(len / n, 2.7), chainMat);
+		panel.position.set(cx, 1.45, cz);
+		panel.rotation.y = angle;
+		scene.add(panel);
+		const rail = new THREE.Mesh(new THREE.BoxGeometry(len / n, .1, .1), MAT.metalDark);
+		rail.position.set(cx, 2.86, cz);
+		rail.rotation.y = angle;
+		scene.add(rail);
+	}
+}
+// Encloses the yard, with a gate gap at the front
+buildFence(-44, 34, -4.2, 34);
+buildFence(4.2, 34, 44, 34);
+buildFence(44, 34, 44, -60);
+buildFence(44, -60, -44, -60);
+buildFence(-44, -60, -44, 34);
+// Gate posts + header
+fencePost(-4.2, 34, 4);
+fencePost(4.2, 34, 4);
+box(8.8, .28, .28, MAT.metalDark, 0, 4, 34);
+box(3.4, 1.4, .12, MAT.metalDark, 0, 4.9, 34);
+
+// The Chapter Pad (green glowing disc) — LOBBY ONLY.
+// It must never appear in a chapter, cutscene or preview, so it lives in its own group.
+const padGroup = new THREE.Group();
+scene.add(padGroup);
 const pad = new THREE.Mesh(
 	new THREE.CylinderGeometry(4, 4, .25, 48),
 	MAT.green
 );
 pad.position.set(0, .13, 0);
 pad.receiveShadow = true;
-scene.add(pad);
+padGroup.add(pad);
 const padRing = new THREE.Mesh(
 	new THREE.TorusGeometry(4.2, .08, 8, 64),
-	new THREE.MeshStandardMaterial({ color: 0x7fff9e, emissive: 0x7fff9e, emissiveIntensity: .8 })
+	new THREE.MeshStandardMaterial({ color: 0x7fff9e, emissive: 0x7fff9e, emissiveIntensity: .38 })
 );
 padRing.rotation.x = Math.PI / 2;
 padRing.position.set(0, .28, 0);
-scene.add(padRing);
+padGroup.add(padRing);
 
-// A few rocks for atmosphere
-for (let i = 0; i < 18; i++) {
-	const a = Math.random() * Math.PI * 2;
-	const r = 12 + Math.random() * 30;
-	const rock = new THREE.Mesh(
-		new THREE.DodecahedronGeometry(.6 + Math.random() * 1.1, 0),
-		new THREE.MeshStandardMaterial({ color: 0x5b5245, roughness: 1 })
+// Maintenance shed on the right side of the yard
+box(5.5, 2.8, 5, MAT.concreteDark, 30, 1.4, -28);
+box(5.9, .3, 5.4, MAT.metalDark, 30, 2.9, -28);
+box(1.8, 1.9, .12, MAT.glassCool, 30, .95, -25.44);
+box(2.0, 2.1, .16, MAT.metalDark, 30, .95, -25.52);
+
+// Supply truck parked by the lab
+(function truck() {
+	const olive = new THREE.MeshStandardMaterial({ color: 0x4a5340, roughness: .8, metalness: .2 });
+	const glass = new THREE.MeshStandardMaterial({ color: 0x1b2426, roughness: .3, metalness: .4 });
+	const tyre = new THREE.MeshStandardMaterial({ color: 0x1a1c1e, roughness: .95 });
+	const g = new THREE.Group();
+	g.position.set(-13, 0, -30);
+	g.rotation.y = .55;
+
+	const body = new THREE.Mesh(new THREE.BoxGeometry(2.2, 1.1, 4.6), olive);
+	body.position.y = 1.05; g.add(body);
+	const cab = new THREE.Mesh(new THREE.BoxGeometry(2.0, 1.0, 1.7), olive);
+	cab.position.set(0, 2.05, -1.35); g.add(cab);
+	const windscreen = new THREE.Mesh(new THREE.BoxGeometry(1.85, .55, .1), glass);
+	windscreen.position.set(0, 2.15, -2.16); g.add(windscreen);
+	const cover = new THREE.Mesh(new THREE.BoxGeometry(2.0, .7, 2.2), MAT.metalDark);
+	cover.position.set(0, 1.95, .9); g.add(cover);
+	[[-.95, -1.5], [.95, -1.5], [-.95, 1.5], [.95, 1.5]].forEach(([x, z]) => {
+		const w = new THREE.Mesh(new THREE.CylinderGeometry(.5, .5, .32, 12), tyre);
+		w.rotation.z = Math.PI / 2;
+		w.position.set(x, .5, z);
+		g.add(w);
+	});
+	[[-.7, -2.31], [.7, -2.31]].forEach(([x, z]) => {
+		const lamp = new THREE.Mesh(new THREE.BoxGeometry(.34, .22, .08), MAT.lamp);
+		lamp.position.set(x, 1.15, z);
+		g.add(lamp);
+	});
+	g.traverse(o => { if (o.isMesh) { o.castShadow = true; o.receiveShadow = true; } });
+	scene.add(g);
+})();
+
+// Distant mesas give the horizon depth through the fog
+const mesaMat = new THREE.MeshStandardMaterial({ color: 0x3d4650, roughness: 1 });
+for (let i = 0; i < 7; i++) {
+	const a = (i / 7) * Math.PI * 2 + .4;
+	const r = 58 + Math.random() * 14;
+	const hgt = 6 + Math.random() * 7;
+	const mesa = new THREE.Mesh(
+		new THREE.CylinderGeometry(6 + Math.random() * 5, 10 + Math.random() * 6, hgt, 6),
+		mesaMat
 	);
-	rock.position.set(Math.cos(a) * r, .3, Math.sin(a) * r);
+	mesa.position.set(Math.cos(a) * r, hgt / 2 - 1, Math.sin(a) * r);
+	scene.add(mesa);
+}
+
+// Scrub bushes
+const shrubMat = new THREE.MeshStandardMaterial({ color: 0x4c4a35, roughness: 1 });
+for (let i = 0; i < 14; i++) {
+	let x = 0, z = 0, tries = 0;
+	do {
+		const a = Math.random() * Math.PI * 2;
+		const r = 12 + Math.random() * 26;
+		x = Math.cos(a) * r;
+		z = Math.sin(a) * r;
+		tries++;
+	} while (tries < 24 && (Math.hypot(x, z) < 10 || (Math.abs(x) < 9.5 && z > -42 && z < 16)));
+	const bush = new THREE.Mesh(new THREE.IcosahedronGeometry(.5 + Math.random() * .5, 0), shrubMat);
+	bush.position.set(x, .38, z);
+	bush.scale.y = .7;
+	bush.castShadow = true;
+	scene.add(bush);
+}
+
+// A few rocks for atmosphere (kept clear of the walkway)
+const rockMat = new THREE.MeshStandardMaterial({ color: 0x6f6553, roughness: 1 });
+for (let i = 0; i < 18; i++) {
+	let x = 0, z = 0, tries = 0;
+	do {
+		const a = Math.random() * Math.PI * 2;
+		const r = 11 + Math.random() * 28;
+		x = Math.cos(a) * r;
+		z = Math.sin(a) * r;
+		tries++;
+	} while (tries < 24 && (Math.hypot(x, z) < 10 || (Math.abs(x) < 9.5 && z > -42 && z < 16)));
+	const rock = new THREE.Mesh(
+		new THREE.DodecahedronGeometry(.5 + Math.random() * .85, 0),
+		rockMat
+	);
+	rock.position.set(x, .3, z);
 	rock.castShadow = true;
 	scene.add(rock);
 }
@@ -799,6 +1250,7 @@ const EYE = 1.7;
 function clearKeys() { for (const k in keys) keys[k] = false; }
 
 window.addEventListener("keydown", e => {
+	if (chapterLoading) return;
 	keys[e.code] = true;
 	if (e.code === "Escape" && settingsOpen) setSettings(false);
 	if (e.code === "Escape" && reportOpen) setReport(false);
@@ -1312,7 +1764,10 @@ function joinPartyByCode(raw) {
 	const code = (raw || "").trim().toUpperCase();
 	if (!code) { notify("browserNotify", "ENTER A CODE FIRST"); return; }
 	const party = findParty(code);
-	if (!party) { notify("browserNotify", "NO PARTY FOUND: " + code); return; }
+	if (!party) {
+		notify("browserNotify", "NO PARTY FOUND: " + code + " — CODES ARE SAVED ON THE HOST'S DEVICE ONLY");
+		return;
+	}
 	joinParty(party);
 }
 
@@ -1408,12 +1863,43 @@ window.addEventListener("storage", e => {
 	}
 });
 
+// ===== CHAPTER PREVIEW (rendered from the live scene — no image files, no extra weight) =====
+let chapterPreviewURL = "";
+function buildChapterPreview() {
+	try {
+		const w = window.innerWidth, h = window.innerHeight;
+		const cam = new THREE.PerspectiveCamera(58, 16 / 9, .1, 220);
+		cam.position.set(6, 3.2, -12);
+		cam.lookAt(0, 3.6, -48);
+		const savedNear = scene.fog.near, savedFar = scene.fog.far;
+		const savedFlash = flashlightModel.visible, savedDet = detectorModel.visible;
+		const savedPad = padGroup.visible;
+		scene.fog.near = 34;
+		scene.fog.far = 160;
+		flashlightModel.visible = false;
+		detectorModel.visible = false;
+		padGroup.visible = false;
+		renderer.setSize(800, 450);
+		renderer.render(scene, cam);
+		const url = renderer.domElement.toDataURL("image/jpeg", .82);
+		if (url && url.length > 4000) chapterPreviewURL = url;
+		flashlightModel.visible = savedFlash;
+		detectorModel.visible = savedDet;
+		padGroup.visible = savedPad;
+		scene.fog.near = savedNear;
+		scene.fog.far = savedFar;
+		renderer.setSize(w, h);
+		renderer.render(scene, camera);
+	} catch (e) { chapterPreviewURL = ""; }
+}
+buildChapterPreview();
+
 // Build chapter cards
 const cardList = document.getElementById("cardList");
 CHAPTERS.forEach(ch => {
 	const card = document.createElement("button");
 	card.className = "card" + (ch.locked ? " locked" : "");
-	const imgPath = IMAGE_PATHS[ch.index];
+	const imgPath = IMAGE_PATHS[ch.index] || (ch.index === 1 ? chapterPreviewURL : "");
 	card.innerHTML =
 		'<div class="thumb">' + (imgPath && !ch.locked ? '<img src="' + imgPath + '" alt="">' : (ch.locked ? '???' : 'SCENE ' + ch.index)) + '</div>' +
 		'<div class="cmeta">' +
@@ -1427,7 +1913,7 @@ CHAPTERS.forEach(ch => {
 
 function openDetail(ch) {
 	selectedChapter = ch;
-	const imgPath = IMAGE_PATHS[ch.index];
+	const imgPath = IMAGE_PATHS[ch.index] || (ch.index === 1 ? chapterPreviewURL : "");
 	const imgEl = document.getElementById("detailImg");
 	imgEl.innerHTML = imgPath ? '<img src="' + imgPath + '" alt="">' : 'CHAPTER PREVIEW';
 	document.getElementById("detailTitle").textContent = "SEASON " + ch.index + " // " + ch.name + " — " + ch.site;
@@ -1441,17 +1927,196 @@ function openDetail(ch) {
 	showScreen(screenDetail);
 }
 
+// ===== CHAPTER LOADING SCREEN =====
+let loadTimer = null;
+
+function setLoadProgress(p) {
+	loadFill.style.width = p + "%";
+	loadPct.textContent = Math.round(p) + "%";
+	loadStatus.textContent =
+		p < 20 ? "ESTABLISHING UPLINK" :
+		p < 45 ? "DECRYPTING INCIDENT FILE" :
+		p < 70 ? "SYNCING OPERATIVE: OLIVE" :
+		p < 92 ? "CALIBRATING MUTANT DETECTOR" : "DEPLOYMENT READY";
+}
+
+function startChapter(ch) {
+	if (!ch) return;
+	clearInterval(loadTimer);
+	loadTimer = null;
+	chapterLoading = true;
+	clearKeys();
+	padGroup.visible = false;
+	menu.style.display = "none";
+	if (pointerLocked) document.exitPointerLock();
+	loadTop.textContent = "INCIDENT FILE // " + (ch.site || "SITE KESTREL");
+	loadChapter.textContent = "CHAPTER " + ch.index;
+	loadName.textContent = ch.name;
+	loadSub.textContent = ch.desc;
+	loadEndChapter.textContent = "CHAPTER " + ch.index + " // " + ch.name;
+	loadMain.style.display = "block";
+	loadEnd.classList.remove("show");
+	loadScreen.classList.add("show");
+	setLoadProgress(0);
+	let p = 0;
+	loadTimer = setInterval(() => {
+		p += 2 + Math.random() * 5;
+		if (p >= 100) {
+			clearInterval(loadTimer);
+			loadTimer = null;
+			setLoadProgress(100);
+			setTimeout(() => {
+				// Deploy: drop the loading screen, roll the chapter intro, then the file card
+				loadScreen.classList.remove("show");
+				playIntro(() => {
+					chapterLoading = false;
+					loadScreen.classList.add("show");
+					loadMain.style.display = "none";
+					loadEnd.classList.add("show");
+				});
+			}, 650);
+		} else {
+			setLoadProgress(p);
+		}
+	}, 120);
+}
+
+loadReturn.addEventListener("click", () => {
+	chapterLoading = false;
+	padGroup.visible = true;
+	loadScreen.classList.remove("show");
+	loadMain.style.display = "block";
+	loadEnd.classList.remove("show");
+	closeMenu();
+});
+
 soloBtn.addEventListener("click", () => {
 	if (!selectedChapter) return;
-	fade.style.opacity = "1";
-	setTimeout(() => {
-		document.getElementById("detailNotify").textContent = currentParty
-			? "PARTY DEPLOYMENT — COMING SOON"
-			: "CHAPTER NOT BUILT YET — COMING SOON";
-		fade.style.opacity = "0";
-	}, 500);
+	startChapter(selectedChapter);
 });
 document.getElementById("detailCreateBtn").addEventListener("click", createParty);
+
+// ===== INTRO CUTSCENE =====
+const cutsceneEl = document.getElementById("cutscene");
+const csSub = document.getElementById("csSub");
+const csSpeaker = document.getElementById("csSpeaker");
+const csLine = document.getElementById("csLine");
+const csTitle = document.getElementById("csTitle");
+const csFade = document.getElementById("csFade");
+const csSkip = document.getElementById("csSkip");
+
+let cutsceneActive = false;
+let csTime = 0;
+let csSeg = -1;
+let csFogSaved = null;
+let csOnEnd = null;
+
+// Each shot: how long, where the camera starts/ends, what it looks at, and the line spoken
+const CS_SHOTS = [
+	{ dur: 2.8, from: [0, 1.6, 21], to: [0, 1.55, 17], look: [0, 5.5, -41], who: "", line: "" },
+	{ dur: 3.8, from: [0, 1.5, 17],  to: [0, 1.7, 7],     look: [0, 3.5, -40], who: "RADIO // CONTROL", radio: true,
+		line: "Olive. You're on site. Do not enter the lab alone." },
+	{ dur: 3.2, from: [-8, 1.2, -20], to: [-6, 1.5, -25], look: [0, 6, -41],   who: "OLIVE", radio: false,
+		line: "Copy. And the thing from the recordings?" },
+	{ dur: 3.2, from: [8, 1.3, -21],  to: [6, 1.6, -26],  look: [0, 2.4, -39], who: "RADIO // CONTROL", radio: true,
+		line: "That's what you're here to identify. Stay on comms." },
+	{ dur: 3.4, from: [0, 1.7, -20],  to: [0, 1.6, -28],  look: [0, 2.4, -39], who: "OLIVE", radio: false,
+		line: "...Something's already inside." },
+];
+const CS_TOTAL = CS_SHOTS.reduce((a, s) => a + s.dur, 0);
+
+function smoothStep(t) { return t * t * (3 - 2 * t); }
+
+function playIntro(onDone) {
+	cutsceneActive = true;
+	csTime = 0;
+	csSeg = -1;
+	csOnEnd = onDone || null;
+	padGroup.visible = false;
+	clearKeys();
+	if (pointerLocked) document.exitPointerLock();
+	// Pull the fog back for the intro so the site actually reads on camera
+	csFogSaved = { near: scene.fog.near, far: scene.fog.far };
+	scene.fog.near = 34;
+	scene.fog.far = 150;
+	hud.style.opacity = "0";
+	cutsceneEl.classList.add("show");
+	csTitle.classList.remove("show");
+	csSub.classList.remove("show");
+	csFade.style.opacity = "1";
+	setTimeout(() => { if (cutsceneActive) csFade.style.opacity = "0"; }, 80);
+}
+
+function endIntro() {
+	if (!cutsceneActive) return;
+	cutsceneActive = false;
+	cutsceneEl.classList.remove("show");
+	csTitle.classList.remove("show");
+	csSub.classList.remove("show");
+	csFade.style.opacity = "0";
+	hud.style.opacity = "1";
+	if (csFogSaved) {
+		scene.fog.near = csFogSaved.near;
+		scene.fog.far = csFogSaved.far;
+		csFogSaved = null;
+	}
+	// hand control back at the spawn point, facing the lab
+	camera.position.set(0, 1.7, 10);
+	yaw = 0;
+	pitch = 0;
+	camera.rotation.set(0, 0, 0, "YXZ");
+	const cb = csOnEnd;
+	csOnEnd = null;
+	if (cb) {
+		// Deploying into a chapter — the pad stays out of the chapter world
+		cb();
+	} else {
+		padGroup.visible = true;
+		if (pcEnabled && !isTouchDevice()) renderer.domElement.requestPointerLock();
+	}
+}
+
+function updateIntro(dt) {
+	if (!cutsceneActive) return;
+	csTime += dt;
+
+	let acc = 0, idx = -1, local = 0;
+	for (let i = 0; i < CS_SHOTS.length; i++) {
+		if (csTime < acc + CS_SHOTS[i].dur) { idx = i; local = (csTime - acc) / CS_SHOTS[i].dur; break; }
+		acc += CS_SHOTS[i].dur;
+	}
+	if (idx === -1) { endIntro(); return; }
+
+	const s = CS_SHOTS[idx];
+	const e = smoothStep(Math.min(1, local));
+	camera.position.set(
+		s.from[0] + (s.to[0] - s.from[0]) * e,
+		s.from[1] + (s.to[1] - s.from[1]) * e,
+		s.from[2] + (s.to[2] - s.from[2]) * e
+	);
+	camera.lookAt(s.look[0], s.look[1], s.look[2]);
+
+	if (idx !== csSeg) {
+		csSeg = idx;
+		csTitle.classList.toggle("show", idx === 0);
+		if (s.line) {
+			csSpeaker.textContent = s.who;
+			csSpeaker.classList.toggle("radio", !!s.radio);
+			csLine.textContent = s.line;
+			csSub.classList.add("show");
+		} else {
+			csSub.classList.remove("show");
+		}
+	}
+
+	if (csTime > CS_TOTAL - .6) csFade.style.opacity = "1";
+}
+
+csSkip.addEventListener("click", e => { e.stopPropagation(); endIntro(); });
+cutsceneEl.addEventListener("click", () => endIntro());
+window.addEventListener("keydown", e => {
+	if (cutsceneActive && (e.code === "Space" || e.code === "Escape" || e.code === "Enter")) endIntro();
+});
 
 // ===== LOOP =====
 const clock = new THREE.Clock();
@@ -1463,7 +2128,7 @@ function animate() {
 	requestAnimationFrame(animate);
 	const dt = Math.min(clock.getDelta(), .05);
 
-	if (started && !menuOpen() && !settingsOpen && !reportOpen) {
+	if (started && !menuOpen() && !settingsOpen && !reportOpen && !chapterLoading && !cutsceneActive) {
 		sprinting = false;
 		dir.set(0, 0, 0);
 		if (pcEnabled) {
@@ -1515,7 +2180,8 @@ function animate() {
 		camera.updateProjectionMatrix();
 	}
 
-	camera.rotation.set(pitch, yaw, 0, "YXZ");
+	if (cutsceneActive) updateIntro(dt);
+	else camera.rotation.set(pitch, yaw, 0, "YXZ");
 	flashlight.position.copy(camera.position);
 	const look = new THREE.Vector3(0, 0, -1).applyEuler(camera.rotation).add(camera.position);
 	flashlight.target.position.copy(look);
@@ -1523,11 +2189,11 @@ function animate() {
 	// Equipped item + handheld sway
 	const flashEquipped = equippedItem === "flashlight";
 	const bob = walking ? Math.sin(clock.elapsedTime * (sprinting ? 13 : 9)) * .008 : 0;
-	flashlightModel.visible = flashEquipped;
-	detectorModel.visible = equippedItem === "detector";
+	flashlightModel.visible = flashEquipped && !cutsceneActive;
+	detectorModel.visible = equippedItem === "detector" && !cutsceneActive;
 	flashlightModel.position.y = -.24 + bob;
 	detectorModel.position.y = -.26 + bob * .7;
-	flashlight.visible = flashEquipped && flashlightOn;
+	flashlight.visible = flashEquipped && flashlightOn && !cutsceneActive;
 	torchLensMat.color.set(flashlightOn ? 0xf2f2f2 : 0x1a1a1a);
 	radarSweepPivot.rotation.z += dt * (scanning ? 9 : 2.2);
 	radarScreenMat.emissiveIntensity = scanning ? (1 + Math.sin(clock.elapsedTime * 18) * .35) : .55;
@@ -1548,6 +2214,8 @@ function animate() {
 	padRing.rotation.z += dt * .3;
 	const pulse = .45 + Math.sin(clock.elapsedTime * 2) * .15;
 	pad.material.emissiveIntensity = pulse;
+	// Antenna beacon blink
+	beaconMat.emissiveIntensity = .45 + Math.max(0, Math.sin(clock.elapsedTime * 2.2)) * 1.9;
 
 	const showPrompt = started && nearPad() && !menuOpen() && !settingsOpen && !reportOpen;
 	promptEl.style.display = showPrompt ? "block" : "none";
